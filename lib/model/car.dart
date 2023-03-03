@@ -5,11 +5,11 @@ double iconSize = 30;
 CarList carList = CarList(
   cars: [
     Car(companyName: "Chevrolet", carName: "Corvette", price: 2100, imgList: [
-      "corvette_front.png",
-      "corvette_back.png",
-      "interior1.png",
-      "interior2.png",
-      "corvette_front2.png",
+      "assets/corvette_front.png",
+      "assets/corvette_back.png",
+      "assets/interior1.png",
+      "assets/interior2.png",
+      "assets/corvette_front2.png",
     ], offerDetails: [
       {Icon(Icons.bluetooth, size: iconSize): "Automatic"},
       {Icon(Icons.airline_seat_individual_suite, size: iconSize): "4 seats"},
@@ -46,9 +46,9 @@ CarList carList = CarList(
       carName: "Aventador SVJ",
       price: 3000,
       imgList: [
-        "lambo_front.png",
-        "interior_lambo.png",
-        "lambo_back.png",
+        "assets/lambo_front.png",
+        "assets/interior_lambo.png",
+        "assets/lambo_back.png",
       ],
       offerDetails: [
         {Icon(Icons.bluetooth, size: iconSize): "Automatic"},
@@ -110,3 +110,4 @@ class Car {
     required this.specifications,
   });
 }
+
