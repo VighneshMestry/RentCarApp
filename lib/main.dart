@@ -1,10 +1,8 @@
-import 'dart:developer';
-
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:rent_car_app/bloc/state_bloc.dart';
 import 'package:rent_car_app/model/car.dart';
 
-import 'home_page.dart';
+import 'bloc/state_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,7 +57,38 @@ class LayoutStart extends StatelessWidget {
       children: const [
         CarDetailsAnimation(),
         _CustomBottomSheet(),
+        RentButton(),
       ],
+    );
+  }
+}
+
+class RentButton extends StatelessWidget {
+  const RentButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: SizedBox(
+        width: 200,
+        child: TextButton(
+          onPressed: () {},
+          child: const Text(
+            "Rent Car",
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                letterSpacing: 1.4,
+                fontFamily: "arial"),
+          ),
+          // shape: RoundedRectangleBorder(
+          //   borderRadius: BorderRadius.only(topLeft: Radius.circular(35)),
+          // ),
+          // color: Colors.black,
+          // padding: EdgeInsets.all(25),
+        ),
+      ),
     );
   }
 }
@@ -71,10 +100,62 @@ class CarDetailsAnimation extends StatefulWidget {
   State<CarDetailsAnimation> createState() => _CarDetailsAnimationState();
 }
 
-class _CarDetailsAnimationState extends State<CarDetailsAnimation> {
+class _CarDetailsAnimationState extends State<CarDetailsAnimation>
+    with TickerProviderStateMixin {
+  late AnimationController fadeController;
+  late AnimationController scaleController;
+
+  late Animation<double> fadeAnimation;
+  late Animation<double> scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    fadeController = AnimationController(
+        duration: const Duration(milliseconds: 180), vsync: this);
+    scaleController = AnimationController(
+        duration: const Duration(milliseconds: 350), vsync: this);
+
+    fadeAnimation = Tween(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(fadeController);
+    scaleAnimation = Tween(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+          parent: scaleController,
+          curve: Curves.easeInOut,
+          reverseCurve: Curves.easeInOut),
+    );
+  }
+
+  forward() {
+    fadeController.forward();
+    scaleController.forward();
+  }
+
+  reverse() {
+    fadeController.reverse();
+    scaleController.reverse();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const CarDetails();
+    return StreamBuilder(
+      initialData: StateProvider().isAnimating,
+      stream: stateBloc.animationStatus,
+      //snapshot.data in this case is the isAnimating value that we are receiving from the screen
+      builder: (context, snapshot) {
+        snapshot.data ? forward() : reverse();
+        return ScaleTransition(
+          scale: scaleAnimation,
+          child: FadeTransition(
+            opacity: fadeAnimation,
+            child: const CarDetails(),
+          ),
+        );
+      }
+    );
   }
 }
 
@@ -171,7 +252,6 @@ class _CarCarouselState extends State<CarCarousel> {
             onPageChanged: (index) {
               setState(() {
                 _current = index;
-                log(_current.toString());
               });
             },
             itemBuilder: (_, i) {
@@ -235,7 +315,6 @@ class __CustomBottomSheetState extends State<_CustomBottomSheet>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     controller = AnimationController(
         duration: const Duration(milliseconds: 250), vsync: this);
@@ -251,6 +330,16 @@ class __CustomBottomSheetState extends State<_CustomBottomSheet>
       );
   }
 
+  forwardAnimation() {
+    controller.forward();
+    stateBloc.toggleAnimation();
+  }
+
+  reverseAnimation() {
+    controller.reverse();
+    stateBloc.toggleAnimation();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Positioned(
@@ -258,13 +347,16 @@ class __CustomBottomSheetState extends State<_CustomBottomSheet>
       left: 0,
       child: GestureDetector(
         onTap: () {
-          controller.isCompleted ? controller.reverse() : controller.forward();
+          // controller.isCompleted ? controller.reverse() : controller.forward();
+          controller.isCompleted ? reverseAnimation() : forwardAnimation();
         },
         onVerticalDragEnd: (DragEndDetails dragEndDetails) {
-          if(dragEndDetails.primaryVelocity! < 0.0) {
-            controller.forward();
-          } else if(dragEndDetails.primaryVelocity! > 0.0) {
-            controller.reverse();
+          if (dragEndDetails.primaryVelocity! < 0.0) {
+            // controller.forward();
+            forwardAnimation();
+          } else if (dragEndDetails.primaryVelocity! > 0.0) {
+            // controller.reverse();
+            reverseAnimation();
           } else {
             return;
           }
